@@ -3,3 +3,7 @@ build/
 *.out
 *.o
 logs/
+# ATHENA generated voice files
+athena_input.wav
+athena_transcript.txt
+athena_speak.ps1
