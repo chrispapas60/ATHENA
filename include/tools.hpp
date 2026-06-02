@@ -3,6 +3,8 @@
 
 #include <string>
 
-std::string handle_pc_command(const std::string& user_input, bool& handled);
+std::string open_website(const std::string& url);
+std::string open_application(const std::string& app);
+std::string handle_basic_tool_command(const std::string& user_input, bool& handled);
 
 #endif

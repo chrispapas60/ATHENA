@@ -36,9 +36,16 @@ bool file_exists_input(const std::string& path) {
 void create_record_script() {
     std::ofstream ps("athena_record.ps1");
 
+    // Built-in laptop microphone:
     ps << "$mic = 'Microphone Array (Realtek(R) Audio)'\n";
+
+    // If you want the Logitech headset instead, replace the line above with:
+    // ps << "$mic = 'Microphone (Logitech PRO X Gaming Headset)'\n";
+
     ps << "$out = 'C:\\ATHENA\\athena_input.wav'\n";
-    ps << "$filter = 'highpass=f=60,dynaudnorm=f=150:g=8,volume=1.6'\n\n";
+
+    // Light filter. Heavy noise reduction can destroy words.
+    ps << "$filter = 'highpass=f=70,lowpass=f=7600,volume=2.0'\n\n";
 
     ps << "$args = '-hide_banner -loglevel error -y -f dshow -i \"audio=' + $mic + '\" -ac 1 -ar 16000 -af \"' + $filter + '\" \"' + $out + '\"'\n\n";
 
@@ -72,13 +79,15 @@ void create_record_script() {
 }
 
 std::string choose_model_file_windows() {
+    if (file_exists_input("external/whisper.cpp/models/ggml-medium.en.bin")) {
+        return "C:\\ATHENA\\external\\whisper.cpp\\models\\ggml-medium.en.bin";
+    }
+
     if (file_exists_input("external/whisper.cpp/models/ggml-small.en.bin")) {
-        std::cout << "[Whisper model: small.en]\n";
         return "C:\\ATHENA\\external\\whisper.cpp\\models\\ggml-small.en.bin";
     }
 
     if (file_exists_input("external/whisper.cpp/models/ggml-base.en.bin")) {
-        std::cout << "[Whisper model: base.en]\n";
         return "C:\\ATHENA\\external\\whisper.cpp\\models\\ggml-base.en.bin";
     }
 
@@ -86,6 +95,7 @@ std::string choose_model_file_windows() {
 }
 
 std::string listen_and_transcribe() {
+    std::string wav_file = "athena_input.wav";
     std::string transcript_file = "athena_transcript.txt";
 
     create_record_script();
@@ -96,7 +106,7 @@ std::string listen_and_transcribe() {
         "powershell.exe -NoProfile -ExecutionPolicy Bypass -File athena_record.ps1"
     );
 
-    if (record_result != 0 || !file_exists_input("athena_input.wav")) {
+    if (record_result != 0 || !file_exists_input(wav_file)) {
         return "[voice error: microphone recording failed]";
     }
 
@@ -112,11 +122,6 @@ std::string listen_and_transcribe() {
         return "[voice error: no whisper model found]";
     }
 
-    std::string prompt =
-        "ATHENA voice command. The speaker is Chris. "
-        "Likely words: YouTube, Google, Word, Microsoft Word, Steam, VS Code, GitHub, "
-        "website, image, file, code, explain, open, write, create.";
-
     std::string whisper_command =
         "cmd.exe /C \"\""
         + whisper_exe +
@@ -124,13 +129,12 @@ std::string listen_and_transcribe() {
         + model_file +
         "\" -f \"C:\\ATHENA\\athena_input.wav\" "
         "-l en "
-        "-t 8 "
         "-otxt "
         "-of \"C:\\ATHENA\\athena_transcript\" "
-        "--prompt \"" + prompt + "\""
+        "--prompt \"This is a voice command for ATHENA, a personal computer assistant. The user may say commands like open YouTube, open CERN, open Google Docs, open Word, search quantum mechanics notes, write this text, create a file, explain code, or talk casually.\""
         "\"";
 
-    std::cout << "[Running Whisper small.en]\n";
+    std::cout << "[Running Whisper]\n";
 
     int whisper_result = std::system(whisper_command.c_str());
 
@@ -144,7 +148,8 @@ std::string listen_and_transcribe() {
         return "[voice error: no speech detected]";
     }
 
-    std::cout << "[Transcript] " << transcript << "\n";
+    std::cout << "\n[Transcript detected]\n";
+    std::cout << transcript << "\n";
 
     return transcript;
 }

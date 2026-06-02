@@ -9,7 +9,7 @@
 #include <vector>
 
 int main() {
-    std::cout << "ATHENA online.\n";
+    std::cout << "ATHENA voice chat online.\n";
     std::cout << "Type normally, or press Enter on an empty line to speak.\n";
     std::cout << "Type 'exit' to quit.\n";
 
@@ -36,8 +36,12 @@ int main() {
             continue;
         }
 
+        std::cout << "[DEBUG input] " << input << "\n";
+
         bool handled = false;
-        std::string tool_reply = handle_pc_command(input, handled);
+        std::string tool_reply = handle_basic_tool_command(input, handled);
+
+        std::cout << "[DEBUG handled] " << (handled ? "true" : "false") << "\n";
 
         if (handled) {
             std::cout << "\nATHENA > " << tool_reply << "\n";
@@ -45,10 +49,6 @@ int main() {
 
             conversation.push_back({"user", input});
             conversation.push_back({"assistant", tool_reply});
-
-            if (conversation.size() > 8) {
-                conversation.erase(conversation.begin());
-            }
 
             continue;
         }
