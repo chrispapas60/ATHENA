@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 
-std::string clean_for_powershell_here_string(const std::string& text) {
+static std::string clean_for_powershell_here_string(const std::string& text) {
     std::string cleaned;
 
     for (char c : text) {
@@ -15,7 +15,6 @@ std::string clean_for_powershell_here_string(const std::string& text) {
         cleaned += c;
     }
 
-    // Prevent rare PowerShell here-string ending issue
     std::string bad = "\n'@";
     std::string good = "\n' @";
 
@@ -49,7 +48,7 @@ bool speak_text(const std::string& text) {
     ps.close();
 
     std::string command =
-        "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$(wslpath -w athena_speak.ps1)\"";
+        "powershell.exe -NoProfile -ExecutionPolicy Bypass -File athena_speak.ps1";
 
     int result = std::system(command.c_str());
 

@@ -1,6 +1,7 @@
 #include "../include/ai.hpp"
 #include "../include/voice.hpp"
 #include "../include/voice_input.hpp"
+#include "../include/tools.hpp"
 
 #include <iostream>
 #include <string>
@@ -8,7 +9,7 @@
 #include <vector>
 
 int main() {
-    std::cout << "ATHENA voice chat online.\n";
+    std::cout << "ATHENA online.\n";
     std::cout << "Type normally, or press Enter on an empty line to speak.\n";
     std::cout << "Type 'exit' to quit.\n";
 
@@ -35,9 +36,26 @@ int main() {
             continue;
         }
 
+        bool handled = false;
+        std::string tool_reply = handle_pc_command(input, handled);
+
+        if (handled) {
+            std::cout << "\nATHENA > " << tool_reply << "\n";
+            speak_text(tool_reply);
+
+            conversation.push_back({"user", input});
+            conversation.push_back({"assistant", tool_reply});
+
+            if (conversation.size() > 8) {
+                conversation.erase(conversation.begin());
+            }
+
+            continue;
+        }
+
         conversation.push_back({"user", input});
 
-        if (conversation.size() > 12) {
+        if (conversation.size() > 8) {
             conversation.erase(conversation.begin());
         }
 
@@ -46,12 +64,7 @@ int main() {
         conversation.push_back({"assistant", reply});
 
         std::cout << "\nATHENA > " << reply << "\n";
-
-        bool voice_ok = speak_text(reply);
-
-        if (!voice_ok) {
-            std::cout << "\n[Voice output failed]\n";
-        }
+        speak_text(reply);
     }
 
     return 0;
